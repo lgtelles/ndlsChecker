@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <UserSecretsId>dotnet-NdlsCheckerWorker-B6B50257-8A03-43CC-B5ED-742BD0ECD436</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AngleSharp" Version="0.14.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.6" />
+        <PackageReference Include="Microsoft.Extensions.Http" Version="3.1.7" />
+    </ItemGroup>
+</Project>
