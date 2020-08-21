@@ -17,17 +17,18 @@ namespace NdlsCheckerWorker
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
-        private readonly IHttpClientFactory _factory;
         private readonly NdlsConfigOptions _ndlsConfigOptions;
         private readonly PushBulletConfigOptions _pushBulletConfigOptions;
         private Regex _regexConfirm = new Regex("confirmBooking\\(\\'(?<availableDate>([0-9]|-|:| )*)\\'\\)");
+        private readonly HttpClient  _httpClient;
 
         public Worker(ILogger<Worker> logger, IHttpClientFactory factory, IOptions<NdlsConfigOptions> ndlsConfigOptions, IOptions<PushBulletConfigOptions> pushBulletOptions)
         {
             _logger = logger;
-            _factory = factory;
+            
             _ndlsConfigOptions = ndlsConfigOptions.Value;
             _pushBulletConfigOptions = pushBulletOptions.Value;
+            _httpClient = factory.CreateClient();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,16 +46,16 @@ namespace NdlsCheckerWorker
         private async Task CheckAvailableDates()
         {
             await GetIndividualDate("Leopardstown", "15");
-            await GetIndividualDate("CityWest", "16");
-            await GetIndividualDate("Swords", "17");
-            await GetIndividualDate("ClareHall", "42");
-            await GetIndividualDate("Athlone", "22");
-            await GetIndividualDate("Mullingar", "35");
+            // await GetIndividualDate("CityWest", "16");
+            // await GetIndividualDate("Swords", "17");
+            // await GetIndividualDate("ClareHall", "42");
+            // await GetIndividualDate("Athlone", "22");
+            // await GetIndividualDate("Mullingar", "35");
         }
 
         private async Task GetIndividualDate(string centreName, string centreCode)
         {
-            var client = _factory.CreateClient();
+            
 
             var request = new HttpRequestMessage();
             request.Method = HttpMethod.Post;
@@ -65,7 +66,7 @@ namespace NdlsCheckerWorker
             request.Content = new FormUrlEncodedContent(dict);
 
 
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -92,8 +93,6 @@ namespace NdlsCheckerWorker
 
         private async Task FireAlarm(string datetime, string centreName)
         {
-            var client = _factory.CreateClient();
-            
             var request  = new HttpRequestMessage();
             request.Method = HttpMethod.Post;
             request.RequestUri = new Uri("https://api.pushbullet.com/v2/pushes");
@@ -105,7 +104,7 @@ namespace NdlsCheckerWorker
             request.Content = new StringContent($"{{\"body\":\"Carai borracha, deu bom em {centreName} as {datetime}!\",\"title\":\"Corre la truta\",\"type\":\"note\"}}", Encoding.UTF8, "application/json");
 
 
-            var response = await client.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
